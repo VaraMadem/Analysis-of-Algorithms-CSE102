@@ -1,3 +1,6 @@
+import sys
+
+
 class UnionFind:
     def __init__(self, size):
         self.root = list(range(size))
@@ -59,4 +62,9 @@ def main(input_file, output_file):
     write_output(output_file, mst)
 
 if __name__ == "__main__":
-    main('input_file', 'output_file')
+    if len(sys.argv) != 3:
+        print("Usage: ./MWST <input_file> <output_file>")
+        sys.exit(1)
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+    main(input_file, output_file)
