@@ -1,6 +1,7 @@
+# Python interpreter
 PYTHON = python3
 
-# Source files
+# Source file
 SRC = project1.py
 
 # Executable name
@@ -11,7 +12,8 @@ all: $(EXEC)
 
 # Rule to create an executable script
 $(EXEC): $(SRC)
-	echo "/usr/local/bin/$(PYTHON) project1.py" > $(EXEC)
+	echo "#!/usr/bin/env $(PYTHON)" > $(EXEC)
+	cat $(SRC) >> $(EXEC)
 	chmod +x $(EXEC)
 
 # Clean up
