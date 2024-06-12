@@ -1,65 +1,65 @@
-#!/usr/local/bin/python3
-# your python code starts here
 import sys
 
-# Open file
-infile = open(sys.argv[1], 'r')
-outfile = open(sys.argv[2], 'w')
+class UnionFind:
+    def __init__(self, size):
+        self.root = list(range(size))
+        self.rank = [0] * size
 
-# Parse sizes
-vert_count = int(infile.readline())
-edge_count = int(infile.readline())
+    def find(self, x):
+        if self.root[x] != x:
+            self.root[x] = self.find(self.root[x])
+        return self.root[x]
 
-# Parse edges
-edges = []
-for i in range(edge_count):
-    # Append (label, u, v, weight)
-    edges.append(tuple([i+1] + [int(d) for d in infile.readline().split()]))
+    def union(self, x, y):
+        rootX = self.find(x)
+        rootY = self.find(y)
+        if rootX != rootY:
+            if self.rank[rootX] > self.rank[rootY]:
+                self.root[rootY] = rootX
+            elif self.rank[rootX] < self.rank[rootY]:
+                self.root[rootX] = rootY
+            else:
+                self.root[rootY] = rootX
+                self.rank[rootX] += 1
 
-# Sort edges by weight
-edges = sorted(edges, key= lambda x: x[3])
+def kruskal(n, edges):
+    uf = UnionFind(n)
+    mst = []
+    edges.sort(key=lambda e: e[2])
+    for u, v, weight, label in edges:
+        if uf.find(u) != uf.find(v):
+            uf.union(u, v)
+            mst.append((u, v, weight, label))
+            if len(mst) == n-1:
+                break
+    return mst
 
-# Create parent list, and rank for optimization
-parent = [v for v in range(vert_count)]
-rank = [0]*vert_count
+def read_graph(input_file):
+    with open(input_file, 'r') as file:
+        n = int(file.readline().strip())
+        m = int(file.readline().strip())
+        edges = []
+        for i in range(m):
+            u, v, w = map(int, file.readline().strip().split())
+            edges.append((u-1, v-1, w, i+1))
+    return n, edges
 
-def find(x):
-    """Find representative for x's disjoint set"""
-    if parent[x] != x:
-        parent[x] = find(parent[x])
+def write_output(output_file, mst):
+    with open(output_file, 'w') as file:
+        total_weight = sum([w for _, _, w, _ in mst])
+        for u, v, weight, label in sorted(mst, key=lambda x: x[3]):
+            file.write(f'{label:>4}: ({u+1}, {v+1}) {weight:.1f}\n')
+        file.write(f'Total Weight = {total_weight:.2f}\n')
 
-    return parent[x]
+def main(input_file, output_file):
+    n, edges = read_graph(input_file)
+    mst = kruskal(n, edges)
+    write_output(output_file, mst)
 
-def union(x, y):
-    """Union x and y's disjoint set"""
-    if rank[x] > rank[y]:
-        parent[y] = x
-    elif rank[y] > rank[x]:
-        parent[x] = y
-    else:
-        parent[y] = x
-        rank[x] += 1
-
-# MWST Algorithm
-MWST = []
-i = 0
-e = 0
-while e < vert_count - 1:
-    l, v1, v2, w = edges[i]
-    i += 1
-
-    x = find(v1-1)
-    y = find(v2-1)
-    if x != y:
-        MWST.append((l, v1, v2, w))
-        e += 1
-        union(x, y)
-
-total = 0
-outbuf = ''
-for l,u,v,w in MWST:
-    outbuf += f"{' '*(3-l//10)+str(l)}: ({u}, {v}) {format(w, '.1f')}\n"
-    total += w
-
-outbuf += f"Total Weight = {format(total, '.2f')}\n"
-outfile.write(outbuf)
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: MWST <input_file> <output_file>")
+        sys.exit(1)
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+    main(input_file, output_file)
